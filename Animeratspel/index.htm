@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Beachvolleyboll</title>
+  <style>
+    canvas {
+      background: #f0f0f0;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+
+const playerRadius = 30;
+const ballRadius = 15;
+
+let keys = {};
+
+let player1 = {
+  x: 100,
+  y: HEIGHT - playerRadius - 10,
+  color: 'blue',
+};
+
+let player2 = {
+  x: WIDTH - 100,
+  y: HEIGHT - playerRadius - 10,
+  color: 'red',
+};
+
+let ball = {
+  x: WIDTH / 2,
+  y: HEIGHT / 2,
+  vx: 4,
+  vy: -4,
+  gravity: 0.3
+};
+
+// Lyssna på tangenttryck
+document.addEventListener("keydown", (e) => {
+  keys[e.key.toLowerCase()] = true;
+});
+document.addEventListener("keyup", (e) => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+function update() {
+  // Spelarkontroller
+  if (keys['a']) player1.x -= 5;
+  if (keys['d']) player1.x += 5;
+  if (keys['w']) player1.y -= 5;
+  if (keys['s']) player1.y += 5;
+
+  // Begränsa spelare inom canvas
+  player1.x = Math.max(playerRadius, Math.min(WIDTH / 2 - playerRadius, player1.x));
+  player1.y = Math.max(playerRadius, Math.min(HEIGHT - playerRadius, player1.y));
+
+  player2.x = Math.max(WIDTH / 2 + playerRadius, Math.min(WIDTH - playerRadius, player2.x));
+  player2.y = HEIGHT - playerRadius - 10; // statisk position
+
+  // Uppdatera boll
+  ball.vy += ball.gravity;
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // Studs mot väggar
+  if (ball.x - ballRadius < 0 || ball.x + ballRadius > WIDTH) {
+    ball.vx *= -1;
+  }
+
+  // Studs mot golv
+  if (ball.y + ballRadius > HEIGHT) {
+    ball.y = HEIGHT - ballRadius;
+    ball.vy *= -0.7;
+  }
+
+  // Kollision med spelare
+  [player1, player2].forEach(player => {
+    let dx = ball.x - player.x;
+    let dy = ball.y - player.y;
+    let distance = Math.sqrt(dx*dx + dy*dy);
+    if (distance < playerRadius + ballRadius) {
+      ball.vx = (ball.x - player.x) * 0.3;
+      ball.vy = -8;
+    }
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+  // Nät i mitten
+  ctx.beginPath();
+  ctx.moveTo(WIDTH/2, 0);
+  ctx.lineTo(WIDTH/2, HEIGHT);
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Spelare
+  [player1, player2].forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, playerRadius, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+  });
+
+  // Boll
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
+  ctx.fillStyle = "black";
+  ctx.fill();
+}
+
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+</body>
+</html>
