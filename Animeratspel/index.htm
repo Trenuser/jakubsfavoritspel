@@ -2,21 +2,32 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Beachvolleyboll med poäng</title>
+  <title>Beachvolleyboll</title>
   <style>
     canvas {
       background: #f0f0f0;
       display: block;
+      margin: 20px auto;
+    }
+
+    #restartBtn {
+      display: none;
+      text-align: center;
       margin: 0 auto;
+      font-size: 18px;
+      padding: 10px 20px;
     }
   </style>
 </head>
 <body>
+
 <canvas id="gameCanvas" width="800" height="400"></canvas>
+<button id="restartBtn">Starta om spelet</button>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+const restartBtn = document.getElementById("restartBtn");
 
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
@@ -25,22 +36,21 @@ const playerRadius = 30;
 const ballRadius = 15;
 
 let keys = {};
+let isGameOver = false;
+let winner = "";
 
-let score = {
-  player1: 0,
-  player2: 0
-};
+let score = { player1: 0, player2: 0 };
 
 let player1 = {
   x: 100,
   y: HEIGHT - playerRadius - 10,
-  color: 'blue',
+  color: 'blue'
 };
 
 let player2 = {
   x: WIDTH - 100,
   y: HEIGHT - playerRadius - 10,
-  color: 'red',
+  color: 'red'
 };
 
 let ball = {
@@ -51,7 +61,7 @@ let ball = {
   gravity: 0.3
 };
 
-// Lyssna på tangenttryck
+// Tangenttryck
 document.addEventListener("keydown", (e) => {
   keys[e.key.toLowerCase()] = true;
 });
@@ -59,23 +69,45 @@ document.addEventListener("keyup", (e) => {
   keys[e.key.toLowerCase()] = false;
 });
 
-function resetBall(scoringPlayer) {
-  if (scoringPlayer === 'player1') {
-    score.player1++;
-  } else if (scoringPlayer === 'player2') {
-    score.player2++;
+// Starta om spelet
+restartBtn.addEventListener("click", () => {
+  score.player1 = 0;
+  score.player2 = 0;
+  isGameOver = false;
+  winner = "";
+  restartBtn.style.display = "none";
+  resetBall(); // Börja om
+});
+
+function resetBall(scoringPlayer = null) {
+  if (scoringPlayer === 'player1') score.player1++;
+  else if (scoringPlayer === 'player2') score.player2++;
+
+  // Kolla om någon vunnit
+  if (score.player1 >= 10) {
+    isGameOver = true;
+    winner = "Blå spelare vinner!";
+    restartBtn.style.display = "block";
+    return;
+  }
+  if (score.player2 >= 10) {
+    isGameOver = true;
+    winner = "Röd spelare vinner!";
+    restartBtn.style.display = "block";
+    return;
   }
 
-  // Starta bollen från mitten över nätet
+  // Starta om boll från mitten
   ball.x = WIDTH / 2;
   ball.y = HEIGHT / 2;
   ball.vx = Math.random() > 0.5 ? 4 : -4;
   ball.vy = -6;
 }
 
-//spelare1
-function update1() {
-  // Spelarkontroller för player1 (WASD)
+function update() {
+  if (isGameOver) return;
+
+  // Spelare 1 (WASD)
   if (keys['a']) player1.x -= 5;
   if (keys['d']) player1.x += 5;
   if (keys['w']) player1.y -= 5;
@@ -87,69 +119,32 @@ function update1() {
   player2.x = Math.max(WIDTH / 2 + playerRadius, Math.min(WIDTH - playerRadius, player2.x));
   player2.y = HEIGHT - playerRadius - 10; // statisk
 
-  // Uppdatera boll
+  // Bollfysik
   ball.vy += ball.gravity;
   ball.x += ball.vx;
   ball.y += ball.vy;
 
-  // Studs mot väggar
+  // Väggar
   if (ball.x - ballRadius < 0 || ball.x + ballRadius > WIDTH) {
     ball.vx *= -1;
   }
 
-  // Kollision med spelare
-  [player1, player2].forEach(player => {
-    let dx = ball.x - player.x;
-    let dy = ball.y - player.y;
-    let distance = Math.sqrt(dx*dx + dy*dy);
-    if (distance < playerRadius + ballRadius) {
-      ball.vx = (ball.x - player.x) * 0.3;
-      ball.vy = -8;
-    }
-  });
-
-  function update2() {
-  // Spelarkontroller för player1 (WASD)
-  if (keys['l']) player1.x -= 5;
-  if (keys['ä']) player1.x += 5;
-  if (keys['p']) player1.y -= 5;
-  if (keys['ö']) player1.y += 5;
-
-  // Begränsningar
-  player1.x = Math.max(playerRadius, Math.min(WIDTH / 2 - playerRadius, player1.x));
-  player1.y = Math.max(playerRadius, Math.min(HEIGHT - playerRadius, player1.y));
-  player2.x = Math.max(WIDTH / 2 + playerRadius, Math.min(WIDTH - playerRadius, player2.x));
-  player2.y = HEIGHT - playerRadius - 10; // statisk
-
-  // Uppdatera boll
-  ball.vy += ball.gravity;
-  ball.x += ball.vx;
-  ball.y += ball.vy;
-
-  // Studs mot väggar
-  if (ball.x - ballRadius < 0 || ball.x + ballRadius > WIDTH) {
-    ball.vx *= -1;
-  }
-
-  // Kollision med spelare
-  [player1, player2].forEach(player => {
-    let dx = ball.x - player.x;
-    let dy = ball.y - player.y;
-    let distance = Math.sqrt(dx*dx + dy*dy);
-    if (distance < playerRadius + ballRadius) {
-      ball.vx = (ball.x - player.x) * 0.3;
-      ball.vy = -8;
-    }
-  });
-
-  // Om bollen landar på marken: kolla på vilken sida
+  // Studs mot marken
   if (ball.y + ballRadius > HEIGHT) {
-    if (ball.x < WIDTH / 2) {
-      resetBall('player2'); // bollen landade på vänstra sidan
-    } else {
-      resetBall('player1'); // bollen landade på högra sidan
-    }
+    if (ball.x < WIDTH / 2) resetBall('player2');
+    else resetBall('player1');
   }
+
+  // Kollision med spelare
+  [player1, player2].forEach(player => {
+    let dx = ball.x - player.x;
+    let dy = ball.y - player.y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance < playerRadius + ballRadius) {
+      ball.vx = (ball.x - player.x) * 0.3;
+      ball.vy = -8;
+    }
+  });
 }
 
 function draw() {
@@ -163,7 +158,7 @@ function draw() {
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // Rita spelare
+  // Spelare
   [player1, player2].forEach(p => {
     ctx.beginPath();
     ctx.arc(p.x, p.y, playerRadius, 0, Math.PI * 2);
@@ -171,17 +166,24 @@ function draw() {
     ctx.fill();
   });
 
-  // Rita boll
+  // Boll
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
   ctx.fillStyle = "black";
   ctx.fill();
 
-  // Rita poäng
+  // Poäng
   ctx.fillStyle = "black";
   ctx.font = "20px Arial";
   ctx.fillText(`Blå: ${score.player1}`, 20, 30);
   ctx.fillText(`Röd: ${score.player2}`, WIDTH - 100, 30);
+
+  // Vinnare
+  if (isGameOver) {
+    ctx.fillStyle = "green";
+    ctx.font = "30px Arial";
+    ctx.fillText(winner, WIDTH / 2 - 120, HEIGHT / 2 - 20);
+  }
 }
 
 function gameLoop() {
@@ -190,8 +192,8 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+resetBall(); // Startar spelet
 gameLoop();
 </script>
 </body>
 </html>
-
