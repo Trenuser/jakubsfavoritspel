@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Beachvolleyboll</title>
+  <title>Beachvolleyboll med poäng</title>
   <style>
     canvas {
       background: #f0f0f0;
@@ -25,6 +25,11 @@ const playerRadius = 30;
 const ballRadius = 15;
 
 let keys = {};
+
+let score = {
+  player1: 0,
+  player2: 0
+};
 
 let player1 = {
   x: 100,
@@ -54,19 +59,33 @@ document.addEventListener("keyup", (e) => {
   keys[e.key.toLowerCase()] = false;
 });
 
-function update() {
-  // Spelarkontroller
+function resetBall(scoringPlayer) {
+  if (scoringPlayer === 'player1') {
+    score.player1++;
+  } else if (scoringPlayer === 'player2') {
+    score.player2++;
+  }
+
+  // Starta bollen från mitten över nätet
+  ball.x = WIDTH / 2;
+  ball.y = HEIGHT / 2;
+  ball.vx = Math.random() > 0.5 ? 4 : -4;
+  ball.vy = -6;
+}
+
+//spelare1
+function update1() {
+  // Spelarkontroller för player1 (WASD)
   if (keys['a']) player1.x -= 5;
   if (keys['d']) player1.x += 5;
   if (keys['w']) player1.y -= 5;
   if (keys['s']) player1.y += 5;
 
-  // Begränsa spelare inom canvas
+  // Begränsningar
   player1.x = Math.max(playerRadius, Math.min(WIDTH / 2 - playerRadius, player1.x));
   player1.y = Math.max(playerRadius, Math.min(HEIGHT - playerRadius, player1.y));
-
   player2.x = Math.max(WIDTH / 2 + playerRadius, Math.min(WIDTH - playerRadius, player2.x));
-  player2.y = HEIGHT - playerRadius - 10; // statisk position
+  player2.y = HEIGHT - playerRadius - 10; // statisk
 
   // Uppdatera boll
   ball.vy += ball.gravity;
@@ -76,12 +95,6 @@ function update() {
   // Studs mot väggar
   if (ball.x - ballRadius < 0 || ball.x + ballRadius > WIDTH) {
     ball.vx *= -1;
-  }
-
-  // Studs mot golv
-  if (ball.y + ballRadius > HEIGHT) {
-    ball.y = HEIGHT - ballRadius;
-    ball.vy *= -0.7;
   }
 
   // Kollision med spelare
@@ -94,12 +107,55 @@ function update() {
       ball.vy = -8;
     }
   });
+
+  function update2() {
+  // Spelarkontroller för player1 (WASD)
+  if (keys['l']) player1.x -= 5;
+  if (keys['ä']) player1.x += 5;
+  if (keys['p']) player1.y -= 5;
+  if (keys['ö']) player1.y += 5;
+
+  // Begränsningar
+  player1.x = Math.max(playerRadius, Math.min(WIDTH / 2 - playerRadius, player1.x));
+  player1.y = Math.max(playerRadius, Math.min(HEIGHT - playerRadius, player1.y));
+  player2.x = Math.max(WIDTH / 2 + playerRadius, Math.min(WIDTH - playerRadius, player2.x));
+  player2.y = HEIGHT - playerRadius - 10; // statisk
+
+  // Uppdatera boll
+  ball.vy += ball.gravity;
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // Studs mot väggar
+  if (ball.x - ballRadius < 0 || ball.x + ballRadius > WIDTH) {
+    ball.vx *= -1;
+  }
+
+  // Kollision med spelare
+  [player1, player2].forEach(player => {
+    let dx = ball.x - player.x;
+    let dy = ball.y - player.y;
+    let distance = Math.sqrt(dx*dx + dy*dy);
+    if (distance < playerRadius + ballRadius) {
+      ball.vx = (ball.x - player.x) * 0.3;
+      ball.vy = -8;
+    }
+  });
+
+  // Om bollen landar på marken: kolla på vilken sida
+  if (ball.y + ballRadius > HEIGHT) {
+    if (ball.x < WIDTH / 2) {
+      resetBall('player2'); // bollen landade på vänstra sidan
+    } else {
+      resetBall('player1'); // bollen landade på högra sidan
+    }
+  }
 }
 
 function draw() {
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-  // Nät i mitten
+  // Rita nät
   ctx.beginPath();
   ctx.moveTo(WIDTH/2, 0);
   ctx.lineTo(WIDTH/2, HEIGHT);
@@ -107,7 +163,7 @@ function draw() {
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // Spelare
+  // Rita spelare
   [player1, player2].forEach(p => {
     ctx.beginPath();
     ctx.arc(p.x, p.y, playerRadius, 0, Math.PI * 2);
@@ -115,11 +171,17 @@ function draw() {
     ctx.fill();
   });
 
-  // Boll
+  // Rita boll
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
   ctx.fillStyle = "black";
   ctx.fill();
+
+  // Rita poäng
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText(`Blå: ${score.player1}`, 20, 30);
+  ctx.fillText(`Röd: ${score.player2}`, WIDTH - 100, 30);
 }
 
 function gameLoop() {
@@ -132,3 +194,4 @@ gameLoop();
 </script>
 </body>
 </html>
+
