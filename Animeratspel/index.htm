@@ -113,6 +113,11 @@ function update() {
   if (keys['w']) player1.y -= 5;
   if (keys['s']) player1.y += 5;
 
+  if (keys(['h']) player2.x -=5;
+  if (keys(['k']) player2.x +=5;
+  if (keys['u']) player2.y -= 5;
+  if (keys['j']) player2.y += 5;
+
   // Begränsningar
   player1.x = Math.max(playerRadius, Math.min(WIDTH / 2 - playerRadius, player1.x));
   player1.y = Math.max(playerRadius, Math.min(HEIGHT - playerRadius, player1.y));
@@ -174,14 +179,15 @@ function draw() {
 
   // Poäng
   ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
+  ctx.font = "30px Arial";
+  
   ctx.fillText(`Blå: ${score.player1}`, 20, 30);
   ctx.fillText(`Röd: ${score.player2}`, WIDTH - 100, 30);
 
   // Vinnare
   if (isGameOver) {
     ctx.fillStyle = "green";
-    ctx.font = "30px Arial";
+    ctx.font = "40px Arial";
     ctx.fillText(winner, WIDTH / 2 - 120, HEIGHT / 2 - 20);
   }
 }
