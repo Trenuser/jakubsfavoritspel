@@ -1,0 +1,83 @@
+canvas {
+  background-image: url("img/background.png");
+  background-size: cover;
+  background-position: center;
+  display: block;
+  margin: 20px auto;
+}
+
+#restartBtn {
+  display: none;
+  text-align: center;
+  margin: 0 auto;
+  font-size: 18px;
+  padding: 10px 20px;
+}
+
+#gameWrapper {
+  position: relative;
+  display: inline-block;
+  margin-left: auto;
+  top: 50px
+}
+
+#scoreboard {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2em;
+  font-family: Arial, sans-serif;
+  background: #205c2a;
+  padding: 10px 30px;
+  border-radius: 0 0 20px 20px;
+  z-index: 2;
+  color: #fff;
+}
+
+#controls {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#controls button {
+  font-size: 1.2em;
+  margin: 0 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+#startBtnContainer {
+  text-align: center;
+  margin-top: 50px;
+}
+
+#startBtn, #restartBtn {
+  font-size: 1.2em;
+  margin: 0 10px;
+  padding: 12px 32px;
+  cursor: pointer;
+  background: #205c2a;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+#startBtn:hover, #restartBtn:hover {
+  background: #2e8b47;
+  box-shadow: 0 4px 16px rgba(46,139,71,0.2);
+  transform: translateY(-2px) scale(1.04);
+}
+
+#startSeBtn {
+  font-size: 1.2em;
+  margin: 0 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+body {
+  text-align: center;
+  background-image: url("img/background2.png");
+}
